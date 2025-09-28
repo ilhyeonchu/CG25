@@ -2,44 +2,15 @@
 
 import { VertexBuffer } from './rendering/core/VertexBuffer.js';
 import { IndexBuffer } from './rendering/core/IndexBuffer.js';
+import { VertexArray } from './rendering/core/VertexArray.js';
 
-var vertexShaderSource = `#version 300 es
-  layout(location=0) in vec4 a_position;
-  
-  uniform vec4 u_offset;
-  void main() {
-    gl_Position = a_position + u_offset;
-  }
-`;
+import rectangleFragment from './resources/shaders/rectangleFragment.js';
+import rectangleVertex from './resources/shaders/rectangleVertex.js';
+import triangleFragment from './resources/shaders/triangleFragment.js';
+import triangleVertex from './resources/shaders/triangleVertex.js';
+import { Shader } from './rendering/core/Shader.js';
+import { Renderer } from './rendering/core/Renderer.js';
 
-var fragmentShaderSource = `#version 300 es
-  precision mediump float;
-  layout(location=0) out vec4 outColor;
-
-  uniform vec4 u_color;
-
-  void main() {
-    outColor = u_color;
-  }
-`;
-
-var triangleVertexShaderSource = `#version 300 es
-  layout(location=0) in vec4 a_position;
-  
-  uniform vec4 u_offset;
-  void main() {
-    gl_Position = a_position + u_offset;
-  }
-`;
-
-var triangleFragmentShaderSource = `#version 300 es
-  precision mediump float;
-  layout(location=0) out vec4 outColor;
-
-  void main() {
-    outColor = vec4(0.0, 1.0, 0.0, 1.0);
-  }
-`;
 
 function main() {
   // Get A WebGL context
@@ -51,10 +22,11 @@ function main() {
 
   // Rectangle
   var positions = [
-    -0.5, -0.5,
-    0.5, -0.5,
-    0.5, 0.5,
-    -0.5, 0.5,
+    // x, y, r, g, b, a
+    -0.5, -0.5, 1.0, 0.0, 0.0, 1.0,
+    0.5, -0.5, 0.0, 1.0, 0.0, 1.0,
+    0.5, 0.5, 0.0, 0.0, 1.0, 1.0,
+    -0.5, 0.5, 0.8, 0.2, 0.3, 1.0,
   ];
 
   var indices = [
@@ -74,48 +46,31 @@ function main() {
   ];
 
   // Rectangle Buffer
-  var rectangleVAO = gl.createVertexArray();
-  gl.bindVertexArray(rectangleVAO);
-
+  let rectangleVAO = new VertexArray(gl);
   let rectangleVB = new VertexBuffer(gl, positions);
+  rectangleVAO.AddBuffer(rectangleVB, [2, 4], [false]);
   let rectangleIB = new IndexBuffer(gl, indices, 6);
 
-  gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
-
-  gl.bindVertexArray(null);
-  rectangleVB.unbind(gl);
-  rectangleIB.unbind(gl);
+  rectangleVAO.Unbind();
+  rectangleVB.Unbind();
+  rectangleIB.Unbind();
 
   // Triangle Buffer
-  var triangleVAO = gl.createVertexArray();
-  gl.bindVertexArray(triangleVAO);
-
+  let triangleVAO = new VertexArray(gl);
   let triangleVB = new VertexBuffer(gl, trianglePositions);
+  triangleVAO.AddBuffer(triangleVB, [2], [false]);
   let triangleIB = new IndexBuffer(gl, triangleIndices, 3);
 
-  gl.enableVertexAttribArray(0);
-  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
-
-  gl.bindVertexArray(null);
-  triangleVB.unbind(gl);
-  triangleIB.unbind(gl);
+  triangleVAO.Unbind();
+  triangleVB.Unbind();
+  triangleIB.Unbind();
 
 
   // Rectangle Program
-  var program = webglUtils.createProgramFromSources(gl,
-    [vertexShaderSource, fragmentShaderSource]);
-
-  gl.useProgram(program);
-  gl.useProgram(null);
-
+  var rectangleProgram = new Shader(gl, rectangleVertex, rectangleFragment);
 
   // Triangle Program
-  var triangleProgram = webglUtils.createProgramFromSources(gl,
-    [triangleVertexShaderSource, triangleFragmentShaderSource]);
-
-  gl.useProgram(triangleProgram);
-  gl.useProgram(null);
+  var triangleProgram = new Shader(gl, triangleVertex, triangleFragment);
 
   var x_offset = 0.0;
   const slider = document.getElementById("xpositionslider");
@@ -124,54 +79,16 @@ function main() {
     drawScene();
   });
 
+  let renderer = new Renderer(gl);
+
   function drawScene() {
-    // Rectangle Uniform Setting
-    // Rectangle Buffer Binding
-    gl.useProgram(program);
-    gl.bindVertexArray(rectangleVAO);
+    renderer.Clear();
 
-    // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    // gl.enableVertexAttribArray(0);
-    // gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+    rectangleProgram.Bind();
+    rectangleProgram.SetUniform4f("u_offset", x_offset, 0.0, 0.0, 0.0);
+    renderer.Draw(rectangleVAO, rectangleIB, rectangleProgram);
 
-    var location = gl.getUniformLocation(program, "u_color");
-    gl.uniform4fv(location, [0.8, 0.3, 0.8, 1]);
-
-    var offsetLocation = gl.getUniformLocation(program, "u_offset");
-    gl.uniform4fv(offsetLocation, [x_offset, 0.0, 0.0, 0.0]);
-
-    // Draw Rectangle
-    gl.drawElements(gl.TRIANGLES,
-      6,
-      gl.UNSIGNED_SHORT,
-      0
-    );
-
-    gl.useProgram(null);
-    // gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-
-    // Triangle Uniform Setting
-    // Triangle Buffer Binding
-    gl.useProgram(triangleProgram);
-    gl.bindVertexArray(triangleVAO);
-
-    // gl.bindBuffer(gl.ARRAY_BUFFER, trianglePositionBuffer);
-    // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleIndexBuffer);
-    // gl.enableVertexAttribArray(0);
-    // gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
-
-    // Draw Triangle
-    gl.drawElements(gl.TRIANGLES,
-      3,
-      gl.UNSIGNED_SHORT,
-      0
-    );
-
-    gl.useProgram(null);
-    gl.bindVertexArray(null);
+    renderer.Draw(triangleVAO, triangleIB, triangleProgram);
   }
 
   drawScene();

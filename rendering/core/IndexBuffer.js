@@ -1,8 +1,10 @@
 export class IndexBuffer {
+    gl;
     id;
     count;
 
     constructor(gl, data, count) {
+        this.gl = gl;
         this.id = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.id);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(data), gl.STATIC_DRAW);
@@ -10,15 +12,15 @@ export class IndexBuffer {
         this.count = count;
     }
 
-    bind(gl) {
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.id);
+    Bind() {
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.id);
     }
 
-    unbind(gl) {
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+    Unbind() {
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, null);
     }
 
-    getCount() {
+    GetCount() {
         return this.count;
     }
 }
