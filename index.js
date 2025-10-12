@@ -1,97 +1,97 @@
 "use strict";
 
-import { VertexBuffer } from './rendering/core/VertexBuffer.js';
-import { IndexBuffer } from './rendering/core/IndexBuffer.js';
-import { VertexArray } from './rendering/core/VertexArray.js';
-
-import rectangleFragment from './resources/shaders/rectangleFragment.js';
-import rectangleVertex from './resources/shaders/rectangleVertex.js';
-import triangleFragment from './resources/shaders/triangleFragment.js';
-import triangleVertex from './resources/shaders/triangleVertex.js';
 import { Shader } from './rendering/core/Shader.js';
 import { Renderer } from './rendering/core/Renderer.js';
+import { OrbitCamera } from './rendering/core/OrbitCamera.js';
+import { Model } from './rendering/core/Model.js';
 
+import basicVertex from './resources/shaders/basicVertex.js';
+import basicFragment from './resources/shaders/basicFragment.js';
 
-function main() {
-  // Get A WebGL context
+const { mat4, vec4 } = glMatrix;
+
+async function main() {
   var canvas = document.querySelector("#c");
   var gl = canvas.getContext("webgl2");
   if (!gl) {
     return;
   }
 
-  // Rectangle
-  var positions = [
-    // x, y, r, g, b, a
-    -0.5, -0.5, 1.0, 0.0, 0.0, 1.0,
-    0.5, -0.5, 0.0, 1.0, 0.0, 1.0,
-    0.5, 0.5, 0.0, 0.0, 1.0, 1.0,
-    -0.5, 0.5, 0.8, 0.2, 0.3, 1.0,
-  ];
+  let cubeModel = new Model(gl);
+  await cubeModel.LoadModel('./resources/models/cube.obj');
 
-  var indices = [
-    0, 1, 2,
-    0, 2, 3,
-  ];
-
-  // Triangle
-  var trianglePositions = [
-    1.0, 0.0,
-    0.0, 0.0,
-    1.0, -1.0,
-  ];
-
-  var triangleIndices = [
-    0, 1, 2,
-  ];
-
-  // Rectangle Buffer
-  let rectangleVAO = new VertexArray(gl);
-  let rectangleVB = new VertexBuffer(gl, positions);
-  rectangleVAO.AddBuffer(rectangleVB, [2, 4], [false]);
-  let rectangleIB = new IndexBuffer(gl, indices, 6);
-
-  rectangleVAO.Unbind();
-  rectangleVB.Unbind();
-  rectangleIB.Unbind();
-
-  // Triangle Buffer
-  let triangleVAO = new VertexArray(gl);
-  let triangleVB = new VertexBuffer(gl, trianglePositions);
-  triangleVAO.AddBuffer(triangleVB, [2], [false]);
-  let triangleIB = new IndexBuffer(gl, triangleIndices, 3);
-
-  triangleVAO.Unbind();
-  triangleVB.Unbind();
-  triangleIB.Unbind();
-
+  let teapotModel = new Model(gl);
+  await teapotModel.LoadModel('./resources/models/teapot.obj');
 
   // Rectangle Program
-  var rectangleProgram = new Shader(gl, rectangleVertex, rectangleFragment);
-
-  // Triangle Program
-  var triangleProgram = new Shader(gl, triangleVertex, triangleFragment);
-
-  var x_offset = 0.0;
-  const slider = document.getElementById("xpositionslider");
-  slider.addEventListener('input', function () {
-    x_offset = slider.value;
-    drawScene();
-  });
+  let program = new Shader(gl, basicVertex, basicFragment);
 
   let renderer = new Renderer(gl);
 
+  const pitchSlider = document.getElementById("pitchslider");
+  pitchSlider.addEventListener("input", function () {
+    camera.pitch = pitchSlider.value;
+    camera.Update();
+  });
+
+  const yawSlider = document.getElementById("yawslider");
+  yawSlider.addEventListener("input", function () {
+    camera.yaw = yawSlider.value;
+    camera.Update();
+  });
+
+  const distanceSlider = document.getElementById("distanceslider");
+  distanceSlider.addEventListener("input", function () {
+    camera.distance = distanceSlider.value;
+    camera.Update();
+  });
+
+  let at = [0, 0, 0];
+  let yaw = yawSlider.value;
+  let pitch = pitchSlider.value;
+  let distance = distanceSlider.value;
+  let camera = new OrbitCamera(at, yaw, pitch, distance);
+
+  let projectionMatrix = mat4.create();
+  let fovy = 60.0 * Math.PI / 180;
+  let aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  let near = 0.1;
+  let far = 100.0;
+  mat4.perspective(projectionMatrix, fovy, aspect, near, far);
+
+  requestAnimationFrame(drawScene);
+
+  let rotationAngle = 0.0;
+
   function drawScene() {
+    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    rotationAngle += 0.5 * Math.PI / 180.0;
+
     renderer.Clear();
 
-    rectangleProgram.Bind();
-    rectangleProgram.SetUniform4f("u_offset", x_offset, 0.0, 0.0, 0.0);
-    renderer.Draw(rectangleVAO, rectangleIB, rectangleProgram);
+    program.Bind();
 
-    renderer.Draw(triangleVAO, triangleIB, triangleProgram);
+    {
+      let modelMatrix = mat4.create();
+      mat4.fromYRotation(modelMatrix, rotationAngle);
+      mat4.translate(modelMatrix, modelMatrix, [0, 0, -3.0]);
+      program.SetUniformMatrix4f("u_model", modelMatrix);
+      program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
+      program.SetUniformMatrix4f("u_projection", projectionMatrix);
+      cubeModel.RenderModel(renderer);
+
+      modelMatrix = mat4.create();
+      mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1]);
+      program.SetUniformMatrix4f("u_model", modelMatrix);
+      teapotModel.RenderModel(renderer);
+    }
+    program.Unbind();
+
+    requestAnimationFrame(drawScene);
   }
 
-  drawScene();
 }
 
 main();

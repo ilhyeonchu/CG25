@@ -31,4 +31,14 @@ export class Shader {
         let location = this.GetUniformLocation(name);
         this.gl.uniform4f(location, v0, v1, v2, v3);
     }
+
+    SetUniformMatrix4f(name, matrix) {
+        let location = this.GetUniformLocation(name);
+        this.gl.uniformMatrix4fv(location, false, matrix);
+    }
+
+    SetUniform1i(name, value) {
+        let location = this.GetUniformLocation(name);
+        this.gl.uniform1i(location, value);
+    }
 }

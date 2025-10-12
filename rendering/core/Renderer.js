@@ -10,7 +10,6 @@ export class Renderer {
     }
 
     Draw(vao, ib, shader) {
-        shader.Bind();
         vao.Bind();
         ib.Bind();
 
@@ -20,7 +19,6 @@ export class Renderer {
 
         this.gl.drawElements(primitiveType, indexCount, this.gl.UNSIGNED_SHORT, indexOffset);
 
-        shader.Unbind();
         ib.Unbind();
         vao.Unbind();
     }
