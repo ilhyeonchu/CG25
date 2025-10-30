@@ -4,6 +4,7 @@ import { Shader } from './rendering/core/Shader.js';
 import { Renderer } from './rendering/core/Renderer.js';
 import { OrbitCamera } from './rendering/core/OrbitCamera.js';
 import { Model } from './rendering/core/Model.js';
+import { Texture } from './rendering/core/Texture.js';
 
 import basicVertex from './resources/shaders/basicVertex.js';
 import basicFragment from './resources/shaders/basicFragment.js';
@@ -16,6 +17,12 @@ async function main() {
   if (!gl) {
     return;
   }
+
+  let checkerTexture = new Texture(gl);
+  checkerTexture.LoadTexture("./resources/textures/CustomUVChecker_byValle_2K.png");
+
+  let externalTexture = new Texture(gl);
+  externalTexture.LoadTexture("https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/9791156006749.jpg");
 
   let cubeModel = new Model(gl);
   await cubeModel.LoadModel('./resources/models/cube.obj');
@@ -80,11 +87,15 @@ async function main() {
       program.SetUniformMatrix4f("u_model", modelMatrix);
       program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
       program.SetUniformMatrix4f("u_projection", projectionMatrix);
+      externalTexture.Bind(0);
+      program.SetUniform1i("u_texture", 0);
       cubeModel.RenderModel(renderer);
 
       modelMatrix = mat4.create();
       mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1]);
       program.SetUniformMatrix4f("u_model", modelMatrix);
+      checkerTexture.Bind(0);
+      program.SetUniform1i("u_texture", 0);
       teapotModel.RenderModel(renderer);
     }
     program.Unbind();

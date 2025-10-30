@@ -1,0 +1,20 @@
+html {
+    box-sizing: border-box;
+  }
+  *, *:before, *:after {
+    box-sizing: inherit;
+    user-select: none;
+  }
+  
+  body {
+    background-color: #aaa;
+    font-family: Sans-Serif;
+  }
+  
+  canvas {
+    background-color: #fff;
+    border: 1px solid black;
+    width: 800px;
+    height: 600px;
+    display: block;
+  }
