@@ -27,11 +27,13 @@ function main() {
 
     const worldLocalSlider = document.getElementById("worldlocalslider");
     worldLocalSlider.addEventListener("input", function () {
-        const worldLocal = worldLocalSlider.value;
-        let modelMatrix = mat4.create();
-        mat4.translate(modelMatrix, modelMatrix, vec4.fromValues(worldLocal, 0, 0, 0));
-        program.setUniform("u_ModelMatrix", modelMatrix);
+        
     });
+
+    const angleSlider = document.getElementById("angleslider");
+    angleSlider.addEventListener("input", function () {
+        
+    })
 
     const pitchSlider = document.getElementById("pitchslider");
     pitchSlider.addEventListener("input", function () {
