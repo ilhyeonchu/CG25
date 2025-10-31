@@ -22,6 +22,49 @@ function main() {
 
     // 모델 만들어야할듯?
 
+    var firstPositions = [
+        -1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+        -0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
+        -0.5, -0.5, 0.5, 0.0, 0.0, 1.0,
+        -1.5, -0.5, 0.5, 1.0, 1.0, 0.0,
+        -1.5, -0.5, -0.5, 0.5, 1.0, 0.0,
+        -0.5, 0.5, -0.5, 0.0, 1.0, 0.0,
+        -0.5, 0.5, 0.5, 0.0, 0.0, 1.0,
+        -1.5, 0.5, 0.5, 1.0, 1.0, 0.0,
+        -1.5, 0.5, -0.5, 0.5, 1.0, 0.0,
+    ]
+
+    var secondPositions = [
+        1.0, 0, 0,
+        0.5, -0.5, -0.5,
+        0.5, -0.5, 0.5,
+        1.5, -0.5, 0.5,
+        1.5, -0.5, -0.5,
+        0.5, 0.5, -0.5,
+        0.5, 0.5, 0.5,
+        1.5, 0.5, 0.5,
+        1.5, 0.5, -0.5,
+    ]
+
+    var indices = [
+        0, 1, 2,
+        0, 2, 3,
+        0, 3, 4,
+        0, 4, 1,
+        0, 5, 6,
+        0, 6, 7,
+        0, 7, 8,
+        0, 8, 5,
+    ];
+
+    var firstVAO = new VertexArray(gl);
+    let firstVB = new VertexBuffer(gl, firstPositions);
+    firstVAO.AddBuffer(firstVB,);
+
+    var secondVAO = new VertexArray(gl);
+    let secondVB = new VertexBuffer(gl, secondPositions);
+    secondVAO.AddBuffer(secondVB);
+
     let program = new Shader(gl, basicVertex, basicFragment);
     let renderer = new Renderer(gl);
 
