@@ -98,36 +98,36 @@ async function main() {
     mat4.perspective(projectionMatrix, fovy, aspect, near, far);
 
     const worldLocalSlider = document.getElementById("worldlocalslider");
-    let rotationSpace = (parseInt(worldLocalSlider.value, 10) === 1) ? "local" : "world";
-    const toggleRotationSpace = () => {
-        const next = worldLocalSlider.value === "1" ? "0" : "1";
-        worldLocalSlider.value = next;
-        rotationSpace = (next === "1") ? "local" : "world";
-    };
-    worldLocalSlider.addEventListener("click", toggleRotationSpace);
+    let state = "world";
     worldLocalSlider.addEventListener("input", function () {
-        rotationSpace = (parseInt(worldLocalSlider.value, 10) === 1) ? "local" : "world";
+        let value = worldLocalSlider.value;
+        if (value == 1) {
+            state = "local";
+        } else {
+            state = "world";
+        }
+        drawScene();
     });
 
     const angleSlider = document.getElementById("angleslider");
-    let rotationAngle = 0;
+    let rotationAngle = 0.0;
     angleSlider.addEventListener("input", function () {
-        const v = parseFloat(angleSlider.value);
-        rotationAngle = isNaN(v) ? 0 : v;
+        rotationAngle = angleSlider.value;
+        drawScene();
     });
     
     pitchSlider.addEventListener("input", function () {
-        camera.pitch = parseFloat(pitchSlider.value);
+        camera.pitch = pitchSlider.value;
         camera.Update();
     });
 
     yawSlider.addEventListener("input", function () {
-        camera.yaw = parseFloat(yawSlider.value);
+        camera.yaw = yawSlider.value;
         camera.Update();
     });
 
     distanceSlider.addEventListener("input", function () {
-        camera.distance = parseFloat(distanceSlider.value);
+        camera.distance = distanceSlider.value;
         camera.Update();
     });
 
@@ -135,11 +135,9 @@ async function main() {
     // Draw Call을 호출하기 전에 아래 함수를 호출하십시오.    
     gl.enable(gl.DEPTH_TEST);
 
-    const pivot1 = [ -1, 0, 0];
-    const pivot2 = [ 1, 0, 0];
+
     const axis1 = [0, 1, 0];
     const axis2 = [0, 1, 0];
-
 
     function drawScene() {
         webglUtils.resizeCanvasToDisplaySize(gl.canvas);
@@ -149,14 +147,14 @@ async function main() {
 
         program.Bind();
         {
-            const rad = rotationAngle * Math.PI / 180;
+            const rotationAngleRad = rotationAngle * Math.PI / 180;
 
+            // 첫 번째 객체
             let modelMatrix = mat4.create();
-            mat4.identity(modelMatrix);
-            if (rotationSpace === "world") {
-                mat4.fromYRotation(modelMatrix, rad);
+            if (state === "world") {
+                mat4.fromYRotation(modelMatrix, rotationAngleRad);
             } else {
-                mat4.rotate(modelMatrix, modelMatrix, rad, axis1);
+                mat4.rotate(modelMatrix, modelMatrix, rotationAngleRad, axis1);
             }
 
             program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
@@ -164,11 +162,12 @@ async function main() {
             program.SetUniformMatrix4f("u_model", modelMatrix);
             renderer.Draw(firstVAO, firstIB, program);
 
+            // 두 번째 객체
             modelMatrix = mat4.create();
-            if (rotationSpace === "world") {
-                mat4.fromYRotation(modelMatrix, rad);
+            if (state === "world") {
+                mat4.fromYRotation(modelMatrix, rotationAngleRad);
             } else {
-                mat4.rotate(modelMatrix, modelMatrix, rad, axis2);
+                mat4.rotate(modelMatrix, modelMatrix, rotationAngleRad, axis2);
             }
 
             program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
