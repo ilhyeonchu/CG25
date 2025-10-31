@@ -20,9 +20,6 @@ async function main() {
         return;
     }
 
-    // 기존 구조분해 할당을 건드리지 않고 vec3에 접근하기 위한 참조
-    const vec3 = glMatrix.vec3;
-
     // 모델 만들어야할듯?
     var firstPositions = [
         -1.0, 0.0, 0.0, 1.0, 0.0, 0.0,
@@ -115,29 +112,28 @@ async function main() {
         rotationAngle = angleSlider.value;
         drawScene();
     });
-    
+
     pitchSlider.addEventListener("input", function () {
         camera.pitch = pitchSlider.value;
         camera.Update();
+        drawScene();
     });
 
     yawSlider.addEventListener("input", function () {
         camera.yaw = yawSlider.value;
         camera.Update();
+        drawScene();
     });
 
     distanceSlider.addEventListener("input", function () {
         camera.distance = distanceSlider.value;
         camera.Update();
+        drawScene();
     });
 
     // 올바른 결과를 보기 위해서는 깊이 테스트가 활성화되어 있어야 합니다.
     // Draw Call을 호출하기 전에 아래 함수를 호출하십시오.    
     gl.enable(gl.DEPTH_TEST);
-
-
-    const axis1 = [0, 1, 0];
-    const axis2 = [0, 1, 0];
 
     function drawScene() {
         webglUtils.resizeCanvasToDisplaySize(gl.canvas);
@@ -149,12 +145,14 @@ async function main() {
         {
             const rotationAngleRad = rotationAngle * Math.PI / 180;
 
-            // 첫 번째 객체
             let modelMatrix = mat4.create();
             if (state === "world") {
                 mat4.fromYRotation(modelMatrix, rotationAngleRad);
             } else {
-                mat4.rotate(modelMatrix, modelMatrix, rotationAngleRad, axis1);
+                const pivot1 = [-1.0, 0.0, 0.0];
+                mat4.translate(modelMatrix, modelMatrix, pivot1);
+                mat4.rotateY(modelMatrix, modelMatrix, rotationAngleRad);
+                mat4.translate(modelMatrix, modelMatrix, [-pivot1[0], -pivot1[1], -pivot1[2]]);
             }
 
             program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
@@ -162,12 +160,16 @@ async function main() {
             program.SetUniformMatrix4f("u_model", modelMatrix);
             renderer.Draw(firstVAO, firstIB, program);
 
-            // 두 번째 객체
+            program.Bind();
+
             modelMatrix = mat4.create();
             if (state === "world") {
                 mat4.fromYRotation(modelMatrix, rotationAngleRad);
             } else {
-                mat4.rotate(modelMatrix, modelMatrix, rotationAngleRad, axis2);
+                const pivot2 = [1.0, 0.0, 0.0];
+                mat4.translate(modelMatrix, modelMatrix, pivot2);
+                mat4.rotateY(modelMatrix, modelMatrix, rotationAngleRad);
+                mat4.translate(modelMatrix, modelMatrix, [-pivot2[0], -pivot2[1], -pivot2[2]]);
             }
 
             program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
@@ -177,7 +179,6 @@ async function main() {
         }
         program.Unbind();
 
-        requestAnimationFrame(drawScene);
     }
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
