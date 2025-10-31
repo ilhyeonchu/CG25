@@ -78,13 +78,30 @@ async function main() {
     let renderer = new Renderer(gl);
 
     const pitchSlider = document.getElementById("pitchslider");
+    pitchSlider.addEventListener("input", function () {
+        camera.pitch = pitchSlider.value;
+        camera.Update();
+        drawScene(); // 이거 없으면 왜 자동으로 drawScene()이 안불리지?
+    });
+
     const yawSlider = document.getElementById("yawslider");
+    yawSlider.addEventListener("input", function () {
+        camera.yaw = yawSlider.value;
+        camera.Update();
+        drawScene();
+    });
+
     const distanceSlider = document.getElementById("distanceslider");
+    distanceSlider.addEventListener("input", function () {
+        camera.distance = distanceSlider.value;
+        camera.Update();
+        drawScene();
+    });
 
     let at = [0, 0, 0];
-    let yaw = parseFloat(yawSlider.value);
-    let pitch = parseFloat(pitchSlider.value);
-    let distance = parseFloat(distanceSlider.value);
+    let yaw = yawSlider.value;
+    let pitch = pitchSlider.value;
+    let distance = distanceSlider.value;
     let camera = new OrbitCamera(at, yaw, pitch, distance);
 
     let projectionMatrix = mat4.create();
@@ -112,25 +129,6 @@ async function main() {
         rotationAngle = angleSlider.value;
         drawScene();
     });
-
-    pitchSlider.addEventListener("input", function () {
-        camera.pitch = pitchSlider.value;
-        camera.Update();
-        drawScene();
-    });
-
-    yawSlider.addEventListener("input", function () {
-        camera.yaw = yawSlider.value;
-        camera.Update();
-        drawScene();
-    });
-
-    distanceSlider.addEventListener("input", function () {
-        camera.distance = distanceSlider.value;
-        camera.Update();
-        drawScene();
-    });
-
     // 올바른 결과를 보기 위해서는 깊이 테스트가 활성화되어 있어야 합니다.
     // Draw Call을 호출하기 전에 아래 함수를 호출하십시오.    
     gl.enable(gl.DEPTH_TEST);
@@ -160,7 +158,7 @@ async function main() {
             program.SetUniformMatrix4f("u_model", modelMatrix);
             renderer.Draw(firstVAO, firstIB, program);
 
-            program.Bind();
+            program.Bind(); // renderer에서 shader unbind 차이가 있는듯?
 
             modelMatrix = mat4.create();
             if (state === "world") {
