@@ -80,7 +80,6 @@ async function main() {
     let program = new Shader(gl, basicVertex, basicFragment);
     let renderer = new Renderer(gl);
 
-
     const pitchSlider = document.getElementById("pitchslider");
     const yawSlider = document.getElementById("yawslider");
     const distanceSlider = document.getElementById("distanceslider");
@@ -110,9 +109,6 @@ async function main() {
         rotationSpace = (parseInt(worldLocalSlider.value, 10) === 1) ? "local" : "world";
     });
 
-    const pivot1 = [ -1, 0, 0];
-    const pivot2 = [ 0, 1, 0];
-
     const angleSlider = document.getElementById("angleslider");
     let rotationAngle = 0;
     angleSlider.addEventListener("input", function () {
@@ -139,6 +135,12 @@ async function main() {
     // Draw Call을 호출하기 전에 아래 함수를 호출하십시오.    
     gl.enable(gl.DEPTH_TEST);
 
+    const pivot1 = [ -1, 0, 0];
+    const pivot2 = [ 1, 0, 0];
+    const axis1 = [0, 1, 0];
+    const axis2 = [0, 1, 0];
+
+
     function drawScene() {
         webglUtils.resizeCanvasToDisplaySize(gl.canvas);
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -147,18 +149,14 @@ async function main() {
 
         program.Bind();
         {
-
-
             const rad = rotationAngle * Math.PI / 180;
-            const rotationAxis1 = pivot1;
-            const rotationAxis2 = pivot2;
 
             let modelMatrix = mat4.create();
+            mat4.identity(modelMatrix);
             if (rotationSpace === "world") {
                 mat4.fromYRotation(modelMatrix, rad);
             } else {
-                mat4.rotate(modelMatrix, modelMatrix, rad, rotationAxis1);
-                mat4.translate(modelMatrix, modelMatrix, [0, 0, 0]);
+                mat4.rotate(modelMatrix, modelMatrix, rad, axis1);
             }
 
             program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
@@ -170,8 +168,7 @@ async function main() {
             if (rotationSpace === "world") {
                 mat4.fromYRotation(modelMatrix, rad);
             } else {
-                mat4.rotate(modelMatrix, modelMatrix, rad, rotationAxis2);
-                mat4.translate(modelMatrix, modelMatrix, [0, 0, 0]);
+                mat4.rotate(modelMatrix, modelMatrix, rad, axis2);
             }
 
             program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
