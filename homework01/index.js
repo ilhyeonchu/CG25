@@ -14,12 +14,46 @@ const { mat4, vec4 } = glMatrix;
 
 function main() {
     // main() 함수 내 필요한 모든 내용을 작성 하십시오.
+    var canvas = document.querySelector("#c");
+    var gl = canvas.getContext("webgl2");
+    if (!gl) {
+        return;
+    }
 
+    // 모델 만들어야할듯?
+
+    let program = new Shader(gl, basicVertex, basicFragment);
+    let renderer = new Renderer(gl);
+
+    const worldLocalSlider = document.getElementById("worldlocalslider");
+    worldLocalSlider.addEventListener("input", function () {
+        const worldLocal = worldLocalSlider.value;
+        let modelMatrix = mat4.create();
+        mat4.translate(modelMatrix, modelMatrix, vec4.fromValues(worldLocal, 0, 0, 0));
+        program.setUniform("u_ModelMatrix", modelMatrix);
+    });
+
+    const pitchSlider = document.getElementById("pitchslider");
+    pitchSlider.addEventListener("input", function () {
+        camera.pitch = pitchSlider.value;
+        camera.Update();
+    });
+    const yawSlider = document.getElementById("yawslider");
+    yawSlider.addEventListener("input", function () {
+        camera.yaw = yawSlider.value;
+        camera.Update();
+    });
+
+    const distanceSlider = document.getElementById("distanceslider");
+    distanceSlider.addEventListener("input", function () {
+        camera.distance = distanceSlider.value;
+        camera.Update();
+    });
     // 올바른 결과를 보기 위해서는 깊이 테스트가 활성화되어 있어야 합니다.
     // Draw Call을 호출하기 전에 아래 함수를 호출하십시오.     
     gl.enable(gl.DEPTH_TEST);
 
-    
+
 }
 
 main();
