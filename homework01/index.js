@@ -27,7 +27,10 @@ function main() {
 
     const worldLocalSlider = document.getElementById("worldlocalslider");
     worldLocalSlider.addEventListener("input", function () {
-        
+        const worldlocal = worldLocalSlider.value;
+        let modelMatrix = mat4.create();
+        mat4.translate(modelMatrix, modelMatrix, vec4.fromValues(worldlocal, 0, 0, 0));
+        program.setUniform("u_ModelMetrix", modelMatrix);
     });
 
     const angleSlider = document.getElementById("angleslider");
