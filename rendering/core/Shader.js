@@ -41,4 +41,19 @@ export class Shader {
         let location = this.GetUniformLocation(name);
         this.gl.uniform1i(location, value);
     }
+
+    SetUniform3f(name, v0, v1, v2) {
+        let location = this.GetUniformLocation(name);
+        this.gl.uniform3f(location, v0, v1, v2);
+    }
+
+    SetUniform1f(name, value) {
+        let location = this.GetUniformLocation(name);
+        this.gl.uniform1f(location, value);
+    }
+
+    SetLight(light) {
+        this.SetUniform3f("u_light.color", light.lightColor[0], light.lightColor[1], light.lightColor[2]);
+        this.SetUniform1f("u_light.ambientIntensity", light.ambientIntensity);
+    }
 }

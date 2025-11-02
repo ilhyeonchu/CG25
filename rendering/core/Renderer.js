@@ -3,6 +3,8 @@ export class Renderer {
 
     constructor(gl) {
         this.gl = gl;
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
     }
 
     Clear() {

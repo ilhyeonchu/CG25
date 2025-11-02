@@ -5,6 +5,7 @@ import { Renderer } from './rendering/core/Renderer.js';
 import { OrbitCamera } from './rendering/core/OrbitCamera.js';
 import { Model } from './rendering/core/Model.js';
 import { Texture } from './rendering/core/Texture.js';
+import { Light } from './rendering/light/Light.js';
 
 import basicVertex from './resources/shaders/basicVertex.js';
 import basicFragment from './resources/shaders/basicFragment.js';
@@ -20,12 +21,6 @@ async function main() {
 
   let checkerTexture = new Texture(gl);
   checkerTexture.LoadTexture("./resources/textures/CustomUVChecker_byValle_2K.png");
-
-  let externalTexture = new Texture(gl);
-  externalTexture.LoadTexture("https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/9791156006749.jpg");
-
-  let cubeModel = new Model(gl);
-  await cubeModel.LoadModel('./resources/models/cube.obj');
 
   let teapotModel = new Model(gl);
   await teapotModel.LoadModel('./resources/models/teapot.obj');
@@ -66,6 +61,8 @@ async function main() {
   let far = 100.0;
   mat4.perspective(projectionMatrix, fovy, aspect, near, far);
 
+  let light = new Light([1.0, 1.0, 1.0], 0.1);
+
   requestAnimationFrame(drawScene);
 
   let rotationAngle = 0.0;
@@ -82,20 +79,13 @@ async function main() {
 
     {
       let modelMatrix = mat4.create();
-      mat4.fromYRotation(modelMatrix, rotationAngle);
-      mat4.translate(modelMatrix, modelMatrix, [0, 0, -3.0]);
+      mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1]);
       program.SetUniformMatrix4f("u_model", modelMatrix);
       program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
       program.SetUniformMatrix4f("u_projection", projectionMatrix);
-      externalTexture.Bind(0);
-      program.SetUniform1i("u_texture", 0);
-      cubeModel.RenderModel(renderer);
-
-      modelMatrix = mat4.create();
-      mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1]);
-      program.SetUniformMatrix4f("u_model", modelMatrix);
       checkerTexture.Bind(0);
       program.SetUniform1i("u_texture", 0);
+      program.SetLight(light);
       teapotModel.RenderModel(renderer);
     }
     program.Unbind();
