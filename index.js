@@ -30,28 +30,12 @@ async function main() {
 
   let renderer = new Renderer(gl);
 
-  const pitchSlider = document.getElementById("pitchslider");
-  pitchSlider.addEventListener("input", function () {
-    camera.pitch = pitchSlider.value;
-    camera.Update();
-  });
 
-  const yawSlider = document.getElementById("yawslider");
-  yawSlider.addEventListener("input", function () {
-    camera.yaw = yawSlider.value;
-    camera.Update();
-  });
-
-  const distanceSlider = document.getElementById("distanceslider");
-  distanceSlider.addEventListener("input", function () {
-    camera.distance = distanceSlider.value;
-    camera.Update();
-  });
 
   let at = [0, 0, 0];
-  let yaw = yawSlider.value;
-  let pitch = pitchSlider.value;
-  let distance = distanceSlider.value;
+  let yaw = 90;
+  let pitch = 0;
+  let distance = 5;
   let camera = new OrbitCamera(at, yaw, pitch, distance);
 
   let projectionMatrix = mat4.create();
@@ -63,6 +47,7 @@ async function main() {
 
   let light = new Light([1.0, 1.0, 1.0], [2.0, 1.0, -2.0], 0.1, 1.0);
 
+  SetupSliders();
   requestAnimationFrame(drawScene);
 
   let rotationAngle = 0.0;
@@ -93,6 +78,41 @@ async function main() {
     requestAnimationFrame(drawScene);
   }
 
+  function SetupSliders() {
+    const pitchSlider = document.getElementById("pitchslider");
+    const yawSlider = document.getElementById("yawslider");
+    const distanceSlider = document.getElementById("distanceslider");
+    const directionXSlider = document.getElementById("directionx");
+    const directionYSlider = document.getElementById("directiony");
+    const directionZSlider = document.getElementById("directionz");
+
+    pitchSlider.addEventListener("input", function () {
+      camera.pitch = pitchSlider.value;
+      camera.Update();
+    });
+
+    yawSlider.addEventListener("input", function () {
+      camera.yaw = yawSlider.value;
+      camera.Update();
+    });
+
+    distanceSlider.addEventListener("input", function () {
+      camera.distance = distanceSlider.value;
+      camera.Update();
+    });
+
+    directionXSlider.addEventListener("input", function () {
+      light.direction[0] = directionXSlider.value;
+    });
+
+    directionYSlider.addEventListener("input", function () {
+      light.direction[1] = directionYSlider.value;
+    });
+
+    directionZSlider.addEventListener("input", function () {
+      light.direction[2] = directionZSlider.value;
+    });
+  }
 }
 
 main();
