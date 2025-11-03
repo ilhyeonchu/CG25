@@ -53,9 +53,14 @@ export class Shader {
     }
 
     SetLight(light) {
-        this.SetUniform3f("u_light.color", light.lightColor[0], light.lightColor[1], light.lightColor[2]);
-        this.SetUniform3f("u_light.direction", light.direction[0], light.direction[1], light.direction[2]);
-        this.SetUniform1f("u_light.diffuseIntensity", light.diffuseIntensity);
-        this.SetUniform1f("u_light.ambientIntensity", light.ambientIntensity);
+        this.SetUniform3f("u_directionalLight.base.color", light.lightColor[0], light.lightColor[1], light.lightColor[2]);
+        this.SetUniform3f("u_directionalLight.direction", light.direction[0], light.direction[1], light.direction[2]);
+        this.SetUniform1f("u_directionalLight.base.diffuseIntensity", light.diffuseIntensity);
+        this.SetUniform1f("u_directionalLight.base.ambientIntensity", light.ambientIntensity);
+    }
+
+    SetMaterial(material) {
+        this.SetUniform1f("u_material.specularIntensity", material.specularIntensity);
+        this.SetUniform1f("u_material.shininess", material.shininess);
     }
 }

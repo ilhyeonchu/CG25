@@ -5,7 +5,8 @@ import { Renderer } from './rendering/core/Renderer.js';
 import { OrbitCamera } from './rendering/core/OrbitCamera.js';
 import { Model } from './rendering/core/Model.js';
 import { Texture } from './rendering/core/Texture.js';
-import { Light } from './rendering/light/Light.js';
+import { DirectionalLight } from './rendering/light/DirectionalLight.js';
+import { Material } from './rendering/core/Material.js';
 
 import basicVertex from './resources/shaders/basicVertex.js';
 import basicFragment from './resources/shaders/basicFragment.js';
@@ -45,7 +46,9 @@ async function main() {
   let far = 100.0;
   mat4.perspective(projectionMatrix, fovy, aspect, near, far);
 
-  let light = new Light([1.0, 1.0, 1.0], [2.0, 1.0, -2.0], 0.1, 1.0);
+  let light = new DirectionalLight([1.0, 1.0, 1.0], [2.0, 1.0, -2.0], 0.1, 1.0);
+
+  let material = new Material(1.0, 64.0);
 
   SetupSliders();
   requestAnimationFrame(drawScene);
@@ -68,6 +71,8 @@ async function main() {
       program.SetUniformMatrix4f("u_model", modelMatrix);
       program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
       program.SetUniformMatrix4f("u_projection", projectionMatrix);
+      program.SetUniform3f("u_eyePosition", camera.eye[0], camera.eye[1], camera.eye[2]);
+      program.SetMaterial(material);
       checkerTexture.Bind(0);
       program.SetUniform1i("u_texture", 0);
       program.SetLight(light);
@@ -85,6 +90,8 @@ async function main() {
     const directionXSlider = document.getElementById("directionx");
     const directionYSlider = document.getElementById("directiony");
     const directionZSlider = document.getElementById("directionz");
+    const specularIntensitySlider = document.getElementById("specularIntensity");
+    const shininessSlider = document.getElementById("shininess");
 
     pitchSlider.addEventListener("input", function () {
       camera.pitch = pitchSlider.value;
@@ -111,6 +118,14 @@ async function main() {
 
     directionZSlider.addEventListener("input", function () {
       light.direction[2] = directionZSlider.value;
+    });
+
+    specularIntensitySlider.addEventListener("input", function () {
+      material.specularIntensity = specularIntensitySlider.value;
+    });
+
+    shininessSlider.addEventListener("input", function () {
+      material.shininess = shininessSlider.value;
     });
   }
 }
