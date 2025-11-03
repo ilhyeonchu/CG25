@@ -61,7 +61,7 @@ async function main() {
   let far = 100.0;
   mat4.perspective(projectionMatrix, fovy, aspect, near, far);
 
-  let light = new Light([1.0, 1.0, 1.0], 0.1);
+  let light = new Light([1.0, 1.0, 1.0], [2.0, 1.0, -2.0], 0.1, 1.0);
 
   requestAnimationFrame(drawScene);
 
