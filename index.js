@@ -11,6 +11,11 @@ import { Material } from './rendering/core/Material.js';
 import basicVertex from './resources/shaders/basicVertex.js';
 import basicFragment from './resources/shaders/basicFragment.js';
 
+import depthmapFragment from './resources/shaders/depthmapFragment.js';
+import depthmapVertex from './resources/shaders/depthmapVertex.js';
+
+import depthmapDebugFragment from './resources/shaders/depthmapDebugFragment.js';
+
 const { mat4, vec4 } = glMatrix;
 
 async function main() {
@@ -26,14 +31,18 @@ async function main() {
   let teapotModel = new Model(gl);
   await teapotModel.LoadModel('./resources/models/teapot.obj');
 
+  let quadModel = new Model(gl);
+  await quadModel.LoadModel('./resources/models/quad.obj');
+
   // Rectangle Program
   let program = new Shader(gl, basicVertex, basicFragment);
+  let depthmapProgram = new Shader(gl, depthmapVertex, depthmapFragment);
+  let depthmapDebugProgram = new Shader(gl, basicVertex, depthmapDebugFragment);
 
   let renderer = new Renderer(gl);
 
 
-
-  let at = [0, 0, 0];
+  let at = [0, 0, 0,];
   let yaw = 90;
   let pitch = 0;
   let distance = 5;
@@ -46,39 +55,57 @@ async function main() {
   let far = 100.0;
   mat4.perspective(projectionMatrix, fovy, aspect, near, far);
 
-  let light = new DirectionalLight([1.0, 1.0, 1.0], [2.0, 1.0, -2.0], 0.1, 1.0);
+  let depthmapWidth = 1024;
+  let depthmapHeight = 1024;
+  let light = new DirectionalLight(gl, [1.0, 1.0, 1.0], [2.0, 1.0, -2.0], 0.1, 1.0, depthmapWidth, depthmapHeight);
 
   let material = new Material(1.0, 64.0);
 
   SetupSliders();
   requestAnimationFrame(drawScene);
 
-  let rotationAngle = 0.0;
-
   function drawScene() {
-    webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-    rotationAngle += 0.5 * Math.PI / 180.0;
-
-    renderer.Clear();
-
-    program.Bind();
-
+    //1st pass
+    light.depthmap.Bind();
+    depthmapProgram.Bind();
     {
       let modelMatrix = mat4.create();
       mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1]);
-      program.SetUniformMatrix4f("u_model", modelMatrix);
-      program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
-      program.SetUniformMatrix4f("u_projection", projectionMatrix);
-      program.SetUniform3f("u_eyePosition", camera.eye[0], camera.eye[1], camera.eye[2]);
-      program.SetMaterial(material);
-      checkerTexture.Bind(0);
-      program.SetUniform1i("u_texture", 0);
-      program.SetLight(light);
+
+      depthmapProgram.SetUniformMatrix4f("u_model", modelMatrix);
+      depthmapProgram.SetDepthmapLightTransform(light);
+
+      renderer.Clear();
+      gl.viewport(0, 0, light.depthmapWidth, light.depthmapHeight);
       teapotModel.RenderModel(renderer);
     }
-    program.Unbind();
+    light.depthmap.Unbind();
+    depthmapProgram.Unbind();
+
+    //2nd pass
+    {
+      webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+      gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+      depthmapDebugProgram.Bind();
+      {
+        let modelMatrix = mat4.create();
+        mat4.scale(modelMatrix, modelMatrix, [0.02, 0.02, 0.02]);
+        mat4.rotateX(modelMatrix, modelMatrix, 3.0*Math.PI/2.0);
+        mat4.rotateY(modelMatrix, modelMatrix, Math.PI);
+
+        depthmapDebugProgram.SetUniformMatrix4f("u_model", modelMatrix);
+        depthmapDebugProgram.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
+        depthmapDebugProgram.SetUniformMatrix4f("u_projection", projectionMatrix);
+
+        light.depthmap.Read(0);
+        depthmapDebugProgram.SetUniform1i("u_depthmap", 0);
+
+        renderer.Clear();
+        gl.viewport(0, 0, light.depthmapWidth, light.depthmapHeight);
+        quadModel.RenderModel(renderer);
+      }
+    }
 
     requestAnimationFrame(drawScene);
   }

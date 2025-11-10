@@ -63,4 +63,8 @@ export class Shader {
         this.SetUniform1f("u_material.specularIntensity", material.specularIntensity);
         this.SetUniform1f("u_material.shininess", material.shininess);
     }
+
+    SetDepthmapLightTransform(light) {
+        this.SetUniformMatrix4f("u_lightVP", light.CalculateLightTransformMatrix());
+    }
 }
