@@ -23,13 +23,26 @@ layout(location = 0) out vec4 outColor;
 in vec2 v_texCoord;
 in vec3 v_normal;
 in vec3 v_worldPosition;
+in vec4 v_lightSpacePosition;
 
 uniform sampler2D u_texture;
 uniform DirectionalLight u_directionalLight;
 uniform vec3 u_eyePosition;
 uniform Material u_material;
+uniform sampler2D u_depthmap;
 
-vec3 CalculateLight(Light light, vec3 direction, vec3 normal) {
+float CalculateShadow(vec4 lightSpacePosition) {
+    vec3 projCoords = lightSpacePosition.xyz / lightSpacePosition.w;
+    projCoords = projCoords * 0.5 + 0.5;
+    float z = texture(u_depthmap, projCoords.xy).r;
+    float d = projCoords.z;
+
+    float shadowFactor = z < d ? 1.0 : 0.0;
+
+    return shadowFactor;
+}
+
+vec3 CalculateLight(Light light, vec3 direction, vec3 normal, float shadowFactor) {
     // Ambient light term
     vec3 lightAmbient = light.color * light.ambientIntensity;
 
@@ -45,13 +58,14 @@ vec3 CalculateLight(Light light, vec3 direction, vec3 normal) {
     float specularFactor = pow(rvAngle, u_material.shininess);
     vec3 lightSpecular = light.color * u_material.specularIntensity * specularFactor;
 
-    vec3 lightResult = lightAmbient + lightDiffuse + lightSpecular;
+    vec3 lightResult = lightAmbient + (1.0 - shadowFactor) * (lightDiffuse + lightSpecular);
     return lightResult;
 }
 
 vec3 CalculateDirectionalLight(DirectionalLight directionalLight, vec3 normal) {
     vec3 lightDirection = normalize(directionalLight.direction);
-    vec3 lightResult = CalculateLight(directionalLight.base, lightDirection, normal);
+    float shadowFactor = CalculateShadow(v_lightSpacePosition);
+    vec3 lightResult = CalculateLight(directionalLight.base, lightDirection, normal, shadowFactor);
 
     return lightResult;
 }

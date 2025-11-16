@@ -37,7 +37,7 @@ async function main() {
   // Rectangle Program
   let program = new Shader(gl, basicVertex, basicFragment);
   let depthmapProgram = new Shader(gl, depthmapVertex, depthmapFragment);
-  let depthmapDebugProgram = new Shader(gl, basicVertex, depthmapDebugFragment);
+  // let depthmapDebugProgram = new Shader(gl, basicVertex, depthmapDebugFragment);
 
   let renderer = new Renderer(gl);
 
@@ -83,30 +83,41 @@ async function main() {
     depthmapProgram.Unbind();
 
     //2nd pass
+    program.Bind();
     {
       webglUtils.resizeCanvasToDisplaySize(gl.canvas);
       gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-      depthmapDebugProgram.Bind();
-      {
-        let modelMatrix = mat4.create();
-        mat4.scale(modelMatrix, modelMatrix, [0.02, 0.02, 0.02]);
-        mat4.rotateX(modelMatrix, modelMatrix, 3.0*Math.PI/2.0);
-        mat4.rotateY(modelMatrix, modelMatrix, Math.PI);
+      renderer.Clear();
 
-        depthmapDebugProgram.SetUniformMatrix4f("u_model", modelMatrix);
-        depthmapDebugProgram.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
-        depthmapDebugProgram.SetUniformMatrix4f("u_projection", projectionMatrix);
+      // -- Teapot rendering
 
-        light.depthmap.Read(0);
-        depthmapDebugProgram.SetUniform1i("u_depthmap", 0);
+      let modelMatrix = mat4.create();
+      mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1]);
 
-        renderer.Clear();
-        gl.viewport(0, 0, light.depthmapWidth, light.depthmapHeight);
-        quadModel.RenderModel(renderer);
-      }
+      program.SetUniformMatrix4f("u_model", modelMatrix);
+      program.SetUniformMatrix4f("u_view", camera.GetViewMatrix());
+      program.SetUniformMatrix4f("u_projection", projectionMatrix);
+      program.SetUniformMatrix4f("u_lightSpaceMatrix", light.CalculateLightTransform());
+
+      checkerTexture.Bind(0);
+      program.SetUniform1i("u_texture", 0);
+      program.SetLight(light);
+      program.SetUniform3f("u_eyePosition", camera.eye[0], camera.eye[1], camera.eye[2]);
+      program.SetMaterial(material);
+      light.depthmap.Read(1);
+      program.SetUniform1i("u_depthmap", 1);
+
+      teapotModel.RenderModel(renderer);
+
+      // --Quad rendering
+      modelMatrix = mat4.create();
+      mat4.translate(modelMatrix, modelMatrix, [0.0, -0.8, 0.0]);
+      mat4.scale(modelMatrix, modelMatrix, [0.1, 0.1, 0.1]);
+      program.SetUniformMatrix4f("u_model", modelMatrix);
+      quadModel.RenderModel(renderer);
     }
-
+    program.Unbind();
     requestAnimationFrame(drawScene);
   }
 

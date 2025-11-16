@@ -65,6 +65,6 @@ export class Shader {
     }
 
     SetDepthmapLightTransform(light) {
-        this.SetUniformMatrix4f("u_lightVP", light.CalculateLightTransformMatrix());
+        this.SetUniformMatrix4f("u_lightVP", light.CalculateLightTransform());
     }
 }
