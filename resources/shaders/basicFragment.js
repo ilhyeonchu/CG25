@@ -31,13 +31,32 @@ uniform vec3 u_eyePosition;
 uniform Material u_material;
 uniform sampler2D u_depthmap;
 
-float CalculateShadow(vec4 lightSpacePosition) {
+float CalculateShadow(vec4 lightSpacePosition, vec3 normal, vec3 lightDirection) {
     vec3 projCoords = lightSpacePosition.xyz / lightSpacePosition.w;
     projCoords = projCoords * 0.5 + 0.5;
     float z = texture(u_depthmap, projCoords.xy).r;
     float d = projCoords.z;
 
-    float shadowFactor = z < d ? 1.0 : 0.0;
+    float bias = max(0.05 * (1.0 - dot(normal, lightDirection)), 0.005);
+
+    // -- PCF
+    float shadowFactor = 0.0;
+    float texelSizeX = 1.0 / float(textureSize(u_depthmap, 0).x);
+    float texelSizeY = 1.0 / float(textureSize(u_depthmap, 0).y);
+    vec2 texelSize = vec2(texelSizeX, texelSizeY);
+    for(int x = -1; x <= 1; ++x) {
+        for(int y = -1; y <= 1; ++y) {
+            float pcfDepth = texture(u_depthmap, projCoords.xy + vec2(x, y) * texelSize).r;
+            if(d - bias > pcfDepth) {
+                shadowFactor += 1.0;
+            }
+        }
+    }
+    shadowFactor /= 9.0;
+
+    shadowFactor = d > 1.0 ? 0.0 : shadowFactor;
+
+    shadowFactor = projCoords.x > 1.0 || projCoords.x < 0.0 || projCoords.y > 1.0 || projCoords.y < 0.0 ? 0.0 : shadowFactor;
 
     return shadowFactor;
 }
@@ -63,8 +82,8 @@ vec3 CalculateLight(Light light, vec3 direction, vec3 normal, float shadowFactor
 }
 
 vec3 CalculateDirectionalLight(DirectionalLight directionalLight, vec3 normal) {
-    vec3 lightDirection = normalize(directionalLight.direction);
-    float shadowFactor = CalculateShadow(v_lightSpacePosition);
+    vec3 lightDirection = normalize(-directionalLight.direction);
+    float shadowFactor = CalculateShadow(v_lightSpacePosition, normal, lightDirection);
     vec3 lightResult = CalculateLight(directionalLight.base, lightDirection, normal, shadowFactor);
 
     return lightResult;
