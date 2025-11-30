@@ -8,9 +8,21 @@ struct Light {
     float diffuseIntensity;
 };
 
-struct DirectionalLight {
+// struct DirectionalLight {
+//     Light base;
+//     vec3 direction;
+// };
+
+struct PointLight {
     Light base;
+    vec3 position;
+};
+
+struct SpotLight {
+    Light base;
+    vec3 position;
     vec3 direction;
+    float cutoff;
 };
 
 struct Material {
@@ -25,7 +37,9 @@ in vec3 v_normal;
 in vec3 v_worldPosition;
 
 uniform sampler2D u_texture;
-uniform DirectionalLight u_directionalLight;
+// uniform DirectionalLight u_directionalLight;
+uniform PointLight u_pointLight;
+uniform SpotLight u_spotLight;
 uniform vec3 u_eyePosition;
 uniform Material u_material;
 
@@ -49,16 +63,39 @@ vec3 CalculateLight(Light light, vec3 direction, vec3 normal) {
     return lightResult;
 }
 
-vec3 CalculateDirectionalLight(DirectionalLight directionalLight, vec3 normal) {
-    vec3 lightDirection = normalize(directionalLight.direction);
-    vec3 lightResult = CalculateLight(directionalLight.base, lightDirection, normal);
+// vec3 CalculateDirectionalLight(DirectionalLight directionalLight, vec3 normal) {
+//     vec3 lightDirection = normalize(directionalLight.direction);
+//     vec3 lightResult = CalculateLight(directionalLight.base, lightDirection, normal);
+//
+//     return lightResult;
+// }
 
-    return lightResult;
+vec3 CalculatePointLight(PointLight pointLight, vec3 normal) {
+    vec3 lightDirection = normalize(pointLight.position - v_worldPosition);
+    vec3 lightResult = CalculateLight(pointLight.base, lightDirection, normal);
+    float distance = length(pointLight.position - v_worldPosition);
+    float attenuation = 1.0 / (distance * distance + 0.01);
+    return lightResult * attenuation;
+}
+
+vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal) {
+    vec3 toLight = normalize(spotLight.position - v_worldPosition);      // fragment -> light
+    vec3 toFragment = normalize(v_worldPosition - spotLight.position);   // light -> fragment (for cutoff)
+    float theta = dot(toFragment, normalize(spotLight.direction));
+    float cutoff = cos(radians(spotLight.cutoff));
+
+    if (theta > cutoff) {
+        return CalculateLight(spotLight.base, toLight, normal);
+    }
+
+    return vec3(0.0);
 }
 
 void main() {
     vec3 normal = normalize(v_normal);
-    vec3 lightResult = CalculateDirectionalLight(u_directionalLight, normal);
+    vec3 lightResult = vec3(0.0);
+    lightResult += CalculatePointLight(u_pointLight, normal);
+    lightResult += CalculateSpotLight(u_spotLight, normal);
 
     outColor = texture(u_texture, v_texCoord) * vec4(lightResult, 1.0);
 }

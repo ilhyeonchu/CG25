@@ -52,11 +52,27 @@ export class Shader {
         this.gl.uniform1f(location, value);
     }
 
-    SetLight(light) {
-        this.SetUniform3f("u_directionalLight.base.color", light.lightColor[0], light.lightColor[1], light.lightColor[2]);
-        this.SetUniform3f("u_directionalLight.direction", light.direction[0], light.direction[1], light.direction[2]);
-        this.SetUniform1f("u_directionalLight.base.diffuseIntensity", light.diffuseIntensity);
-        this.SetUniform1f("u_directionalLight.base.ambientIntensity", light.ambientIntensity);
+    // SetLight(light) {
+    //     this.SetUniform3f("u_directionalLight.base.color", light.lightColor[0], light.lightColor[1], light.lightColor[2]);
+    //     this.SetUniform3f("u_directionalLight.direction", light.direction[0], light.direction[1], light.direction[2]);
+    //     this.SetUniform1f("u_directionalLight.base.diffuseIntensity", light.diffuseIntensity);
+    //     this.SetUniform1f("u_directionalLight.base.ambientIntensity", light.ambientIntensity);
+    // }
+
+    SetPointLight(light) {
+        this.SetUniform3f("u_pointLight.base.color", light.lightColor[0], light.lightColor[1], light.lightColor[2]);
+        this.SetUniform3f("u_pointLight.position", light.position[0], light.position[1], light.position[2]);
+        this.SetUniform1f("u_pointLight.base.diffuseIntensity", light.diffuseIntensity);
+        this.SetUniform1f("u_pointLight.base.ambientIntensity", light.ambientIntensity);
+    }
+
+    SetSpotLight(light) {
+        this.SetUniform3f("u_spotLight.base.color", light.lightColor[0], light.lightColor[1], light.lightColor[2]);
+        this.SetUniform3f("u_spotLight.position", light.position[0], light.position[1], light.position[2]);
+        this.SetUniform3f("u_spotLight.direction", light.direction[0], light.direction[1], light.direction[2]);
+        this.SetUniform1f("u_spotLight.cutoff", light.cutoff);
+        this.SetUniform1f("u_spotLight.base.diffuseIntensity", light.diffuseIntensity);
+        this.SetUniform1f("u_spotLight.base.ambientIntensity", light.ambientIntensity);
     }
 
     SetMaterial(material) {
