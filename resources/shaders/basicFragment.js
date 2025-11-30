@@ -13,6 +13,7 @@ struct Light {
 //     vec3 direction;
 // };
 
+// 각 light 추가
 struct PointLight {
     Light base;
     vec3 position;
@@ -71,19 +72,20 @@ vec3 CalculateLight(Light light, vec3 direction, vec3 normal) {
 // }
 
 vec3 CalculatePointLight(PointLight pointLight, vec3 normal) {
-    vec3 lightDirection = normalize(pointLight.position - v_worldPosition);
+    vec3 lightDirection = normalize(pointLight.position - v_worldPosition);     // fragment에서 광원
     vec3 lightResult = CalculateLight(pointLight.base, lightDirection, normal);
-    float distance = length(pointLight.position - v_worldPosition);
-    float attenuation = 1.0 / (distance * distance + 0.01);
+    float distance = length(pointLight.position - v_worldPosition);             // fragment에서 광원까지 거리
+    float attenuation = 1.0 / (distance * distance + 0.01);                     // 주어진 식식
     return lightResult * attenuation;
 }
 
 vec3 CalculateSpotLight(SpotLight spotLight, vec3 normal) {
-    vec3 toLight = normalize(spotLight.position - v_worldPosition);      // fragment -> light
-    vec3 toFragment = normalize(v_worldPosition - spotLight.position);   // light -> fragment (for cutoff)
-    float theta = dot(toFragment, normalize(spotLight.direction));
+    vec3 toLight = normalize(spotLight.position - v_worldPosition);      // 광원으로 향하는 벡터
+    vec3 toFragment = -toLight;                                          // fragment로 향하는 벡터
+    float theta = dot(toFragment, normalize(spotLight.direction));       // 광원의 방향과 fragment로 향하는 벡터의 각도
     float cutoff = cos(radians(spotLight.cutoff));
 
+    // 컷오프 각도 이내일 때만 조명 계산 밖이면 범위 밖
     if (theta > cutoff) {
         return CalculateLight(spotLight.base, toLight, normal);
     }

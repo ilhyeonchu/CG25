@@ -50,7 +50,14 @@ async function main() {
 
   // let light = new DirectionalLight([1.0, 1.0, 1.0], [2.0, 1.0, -2.0], 0.1, 1.0);
   let pointLight = new PointLight([0.0, 0.0, 1.0], [2.0, 1.0, -2.0], 0.0, 1.0);
-  let spotLight = new SpotLight([1.0, 0.0, 0.0], [...camera.eye], [...camera.front], 45.0, 0.0, 1.0);
+  let spotLight = new SpotLight(
+    [1.0, 0.0, 0.0],
+    [camera.eye[0], camera.eye[1], camera.eye[2]],          // 카메라 위치 복사
+    [camera.front[0], camera.front[1], camera.front[2]],    // 카메라 방향 복사
+    45.0,
+    0.0,
+    1.0
+  );
 
   let material = new Material(1.0, 64.0);
 
@@ -81,12 +88,7 @@ async function main() {
       program.SetUniform1i("u_texture", 0);
       // program.SetLight(light);
       program.SetPointLight(pointLight);
-      spotLight.position[0] = camera.eye[0];
-      spotLight.position[1] = camera.eye[1];
-      spotLight.position[2] = camera.eye[2];
-      spotLight.direction[0] = camera.front[0];
-      spotLight.direction[1] = camera.front[1];
-      spotLight.direction[2] = camera.front[2];
+      spotLight.Update(camera.eye[0], camera.eye[1], camera.eye[2], camera.front[0], camera.front[1], camera.front[2]);
       program.SetSpotLight(spotLight);
       teapotModel.RenderModel(renderer);
     }
