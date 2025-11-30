@@ -67,4 +67,18 @@ export class Shader {
     SetDepthmapLightTransform(light) {
         this.SetUniformMatrix4f("u_lightVP", light.CalculateLightTransform());
     }
+
+    SetPBRMaterial(PBRMaterial) {
+        this.SetUniform3f("u_albedo", PBRMaterial.albedo[0], PBRMaterial.albedo[1], PBRMaterial.albedo[2]);
+        this.SetUniform1f("u_metallic", PBRMaterial.metallic);
+        this.SetUniform1f("u_roughness", PBRMaterial.roughness);
+        this.SetUniform1f("u_ao", PBRMaterial.ao);
+    }
+
+    SetPBRLights(lightPositions, lightColors) {
+        for (let i = 0; i < lightPositions.length; i++) {
+            this.SetUniform3f(`u_lightPositions[${i}]`, lightPositions[i][0], lightPositions[i][1], lightPositions[i][2]);
+            this.SetUniform3f(`u_lightColors[${i}]`, lightColors[i][0], lightColors[i][1], lightColors[i][2]);
+        }
+    }
 }

@@ -16,18 +16,19 @@
   <input type="range" min="-89" max="89" value="0" step="0.01" id="pitchslider">
   <label for="distanceslider">Distance</label>
   <input type="range" min="0.2" max="10" value="5" step="0.01" id="distanceslider">
-  <div>Light Control</div>
-  <label for="directionx">Yaw</label>
-  <input type="range" min="-5" max="5" value="0" step="0.01" id="directionx">
-  <label for="directiony">Pitch</label>
-  <input type="range" min="-5" max="5" value="1" step="0.01" id="directiony">
-  <label for="directionz">Distance</label>
-  <input type="range" min="-5" max="5" value="0" step="0.01" id="directionz">
-  <div>Material Control</div>
-  <label for="specularIntensity">Specular Intensity</label>
-  <input type="range" min="0" max="10" value="0" step="0.01" id="specularIntensity">
-  <label for="shininess">Shininess</label>
-  <input type="range" min="1" max="512" value="32" step="0.01" id="shininess">
+  <div>PBR Parameter Control</div>
+  <label for="albedoR">Albedo R</label>
+  <input type="range" min="0" max="1" value="0.5" step="0.01" id="albedoR">
+  <label for="albedoG">Albedo G</label>
+  <input type="range" min="0" max="1" value="0.0" step="0.01" id="albedoG">
+  <label for="albedoB">Albedo B</label>
+  <input type="range" min="0" max="1" value="0.0" step="0.01" id="albedoB">
+  <label for="metallic">Metallic</label>
+  <input type="range" min="0" max="1" value="0.0" step="0.01" id="metallic">
+  <label for="roughness">Roughness</label>
+  <input type="range" min="0" max="1" value="0.5" step="0.01" id="roughness">
+  <label for="ao">AO</label>
+  <input type="range" min="0" max="1" value="1.0" step="0.01" id="ao">
   <canvas id="c"></canvas>
 </body>
 
